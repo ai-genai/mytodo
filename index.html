@@ -3,36 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Todo App</title>
+    <meta name="description" content="Professional Todo Application with modern features and accessibility">
+    <meta name="author" content="Senior Developer">
+    <title>Professional Todo App</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>My Todo List</h1>
+            <h1>Professional Todo App</h1>
+            <p class="subtitle">Organize your tasks with style and efficiency</p>
         </header>
         
         <main>
             <div class="todo-input-section">
-                <input 
-                    type="text" 
-                    id="todoInput" 
-                    placeholder="Enter a new todo item..."
-                    maxlength="100"
-                >
-                <button id="addTodoBtn">Add Todo</button>
+                <form id="todoForm" novalidate>
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="todoInput" 
+                            placeholder="What needs to be done?"
+                            maxlength="100"
+                            aria-label="Enter a new todo item"
+                            required
+                        >
+                        <button type="submit" id="addTodoBtn" aria-label="Add todo">
+                            <span class="btn-text">Add Todo</span>
+                            <span class="btn-icon">+</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="todo-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Todos:</span>
+                    <span class="stat-value" id="todoCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Completed:</span>
+                    <span class="stat-value" id="completedCount">0</span>
+                </div>
+            </div>
+            
+            <div class="todo-actions">
+                <button type="button" id="clearAllBtn" class="action-btn" aria-label="Clear all todos">
+                    Clear All
+                </button>
+                <button type="button" id="exportBtn" class="action-btn" aria-label="Export todos">
+                    Export
+                </button>
             </div>
             
             <div class="todo-list-section">
                 <h2>Your Todos</h2>
-                <ul id="todoList" class="todo-list">
+                <ul id="todoList" class="todo-list" role="list" aria-label="Todo items list">
                     <!-- Todo items will be dynamically added here -->
                 </ul>
-                <div id="emptyState" class="empty-state">
+                <div id="emptyState" class="empty-state" role="status" aria-live="polite">
+                    <div class="empty-icon">📝</div>
                     <p>No todos yet. Add one above to get started!</p>
+                    <p class="empty-hint">Try adding tasks like "Complete project documentation" or "Review code changes"</p>
                 </div>
             </div>
         </main>
+        
+        <footer>
+            <p>&copy; 2024 Professional Todo App. Built with modern web technologies.</p>
+            <div class="footer-links">
+                <button type="button" id="keyboardShortcutsBtn" class="link-btn">Keyboard Shortcuts</button>
+                <button type="button" id="aboutBtn" class="link-btn">About</button>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Keyboard shortcuts modal -->
+    <div id="shortcutsModal" class="modal" role="dialog" aria-labelledby="shortcutsTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="shortcutsTitle">Keyboard Shortcuts</h3>
+                <button type="button" class="modal-close" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcut-list">
+                    <div class="shortcut-item">
+                        <kbd>Enter</kbd>
+                        <span>Add new todo / Save edit</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Escape</kbd>
+                        <span>Cancel editing</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Tab</kbd>
+                        <span>Navigate between elements</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- About modal -->
+    <div id="aboutModal" class="modal" role="dialog" aria-labelledby="aboutTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="aboutTitle">About This App</h3>
+                <button type="button" class="modal-close" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p>This is a professional-grade todo application built with modern web technologies.</p>
+                <h4>Features:</h4>
+                <ul>
+                    <li>✅ Add, edit, and delete todos</li>
+                    <li>✅ Persistent storage with localStorage</li>
+                    <li>✅ Keyboard shortcuts and accessibility</li>
+                    <li>✅ Modern UI with smooth animations</li>
+                    <li>✅ Export functionality</li>
+                    <li>✅ Error handling and validation</li>
+                </ul>
+                <p><strong>Version:</strong> 2.0.0</p>
+            </div>
+        </div>
     </div>
     
     <script src="script.js"></script>
