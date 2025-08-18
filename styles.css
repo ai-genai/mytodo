@@ -137,6 +137,68 @@ main {
     color: #667eea;
 }
 
+/* Search Section */
+.search-section {
+    padding: 20px 30px;
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.search-container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.search-container input:not(:placeholder-shown) + .clear-search-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.clear-search-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
 /* Action Buttons */
 .todo-actions {
     display: flex;
@@ -198,9 +260,43 @@ main {
     transform: translateX(5px);
 }
 
+.todo-item.completed {
+    opacity: 0.7;
+    background: #f8f9fa;
+}
+
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
 .todo-content {
     flex: 1;
     margin-right: 15px;
+}
+
+.todo-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.complete-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #28a745;
+    transition: all 0.2s ease;
+}
+
+.complete-checkbox:hover {
+    transform: scale(1.1);
+}
+
+.todo-completed {
+    color: #28a745;
+    font-weight: 500;
 }
 
 .todo-text {
@@ -549,6 +645,10 @@ footer p {
     .todo-stats {
         flex-direction: column;
         gap: 15px;
+    }
+    
+    .search-section {
+        padding: 15px 20px;
     }
     
     .todo-actions {

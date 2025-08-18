@@ -266,15 +266,18 @@ class TodoApp {
     constructor() {
         this.todos = [];
         this.editingId = null;
+        this.searchQuery = '';
         this.notificationService = new NotificationService();
         this.debouncedSave = Utils.debounce(this.saveTodos.bind(this), CONFIG.DEBOUNCE_DELAY);
+        this.debouncedSearch = Utils.debounce(this.performSearch.bind(this), 300);
         
         this.elements = {
             todoInput: null,
             addTodoBtn: null,
             todoList: null,
             emptyState: null,
-            todoCount: null
+            todoCount: null,
+            searchInput: null
         };
         
         this.init();
@@ -306,6 +309,7 @@ class TodoApp {
         
         // Optional elements
         this.elements.todoCount = document.getElementById('todoCount');
+        this.elements.searchInput = document.getElementById('searchInput');
     }
     
     bindEvents() {
@@ -318,24 +322,56 @@ class TodoApp {
             });
         }
         
-        // Rely solely on form submit to add todos (prevents double-trigger on click/Enter)
-                // Event delegation for todo list
+        // Add todo events
+        this.elements.addTodoBtn.addEventListener('click', () => this.addTodo());
+        this.elements.todoInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.addTodo();
+            }
+        });
+        
+        // Search functionality
+        if (this.elements.searchInput) {
+            this.elements.searchInput.addEventListener('input', (e) => {
+                this.searchQuery = e.target.value.trim();
+                this.debouncedSearch();
+            });
+            
+            this.elements.searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.clearSearch();
+                }
+            });
+        }
+        
+        // Clear search button
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => this.clearSearch());
+        }
+        
+        // Event delegation for todo list
         this.elements.todoList.addEventListener('click', (e) => {
             const target = e.target;
             
             if (target.matches('.edit-btn')) {
-                const todoId = target.closest('.todo-item').dataset.id;
+                const todoId = parseInt(target.closest('.todo-item').dataset.id);
                 this.startEdit(todoId);
             } else if (target.matches('.delete-btn')) {
-                const todoId = target.closest('.todo-item').dataset.id;
+                const todoId = parseInt(target.closest('.todo-item').dataset.id);
                 this.deleteTodo(todoId);
             } else if (target.matches('.save-btn')) {
-                const todoId = target.closest('.todo-item').dataset.id;
+                const todoId = parseInt(target.closest('.todo-item').dataset.id);
                 this.saveEdit(todoId);
             } else if (target.matches('.cancel-btn')) {
                 this.cancelEdit();
+            } else if (target.matches('.complete-checkbox')) {
+                const todoId = parseInt(target.closest('.todo-item').dataset.id);
+                this.toggleComplete(todoId);
             }
-        });        
+        });
+        
         // Keyboard events for edit mode
         this.elements.todoList.addEventListener('keydown', (e) => {
             if (this.editingId && e.target.matches('.edit-input')) {
@@ -560,7 +596,7 @@ class TodoApp {
             this.elements.todoList.style.display = 'block';
             this.elements.emptyState.style.display = 'none';
             
-            this.elements.todoList.innerHTML = this.todos.map(todo => 
+            this.elements.todoList.innerHTML = this.getFilteredTodos().map(todo => 
                 this.renderTodoItem(todo)
             ).join('');
         }
@@ -569,16 +605,16 @@ class TodoApp {
     renderTodoItem(todo) {
         const isEditing = this.editingId === todo.id;
         const createdAt = new Date(todo.createdAt).toLocaleDateString();
+        const completedAt = todo.completedAt ? new Date(todo.completedAt).toLocaleDateString() : null;
         
         if (isEditing) {
-            return `
             return `
                 <li class="todo-item editing" data-id="${todo.id}" role="listitem">
                     <div class="edit-form">
                         <input 
                             type="text" 
                             class="edit-input" 
-                           value="${Utils.escapeAttribute(todo.text)}"
+                            value="${Utils.escapeHtml(todo.text)}"
                             data-edit-id="${todo.id}"
                             maxlength="${CONFIG.MAX_TODO_LENGTH}"
                             aria-label="Edit todo text"
@@ -593,13 +629,27 @@ class TodoApp {
                         </div>
                     </div>
                 </li>
-            `;        
+            `;
+        }
+        
+        const completedClass = todo.completed ? 'completed' : '';
+        const completedText = todo.completed ? 'Mark as incomplete' : 'Mark as complete';
+        
         return `
-            <li class="todo-item" data-id="${todo.id}" role="listitem">
+            <li class="todo-item ${completedClass}" data-id="${todo.id}" role="listitem">
                 <div class="todo-content">
-                    <span class="todo-text" tabindex="0" role="text">${Utils.escapeHtml(todo.text)}</span>
+                    <div class="todo-header">
+                        <input 
+                            type="checkbox" 
+                            class="complete-checkbox" 
+                            ${todo.completed ? 'checked' : ''}
+                            aria-label="${completedText}"
+                        >
+                        <span class="todo-text" tabindex="0" role="text">${Utils.escapeHtml(todo.text)}</span>
+                    </div>
                     <div class="todo-meta">
                         <small class="todo-date">Created: ${createdAt}</small>
+                        ${completedAt ? `<small class="todo-completed">Completed: ${completedAt}</small>` : ''}
                     </div>
                 </div>
                 <div class="todo-buttons">
@@ -650,6 +700,44 @@ class TodoApp {
         URL.revokeObjectURL(url);
         
         this.notificationService.show('Todos exported successfully', 'success');
+    }
+
+    performSearch() {
+        this.render();
+    }
+
+    clearSearch() {
+        if (this.elements.searchInput) {
+            this.elements.searchInput.value = '';
+            this.searchQuery = '';
+            this.render();
+        }
+    }
+
+    getFilteredTodos() {
+        if (!this.searchQuery) {
+            return this.todos;
+        }
+        
+        const query = this.searchQuery.toLowerCase();
+        return this.todos.filter(todo => 
+            todo.text.toLowerCase().includes(query)
+        );
+    }
+    
+    toggleComplete(id) {
+        const todoIndex = this.todos.findIndex(todo => todo.id === id);
+        if (todoIndex === -1) return;
+        
+        this.todos[todoIndex].completed = !this.todos[todoIndex].completed;
+        this.todos[todoIndex].completedAt = this.todos[todoIndex].completed ? 
+            new Date().toISOString() : null;
+        
+        this.debouncedSave();
+        this.render();
+        
+        const status = this.todos[todoIndex].completed ? 'completed' : 'marked as incomplete';
+        this.notificationService.show(`Todo "${this.todos[todoIndex].text}" ${status}`, 'success');
     }
 }
 
